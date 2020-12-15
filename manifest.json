@@ -1,0 +1,48 @@
+{
+  "author": "WebThingsIO",
+  "description": "TP-Link Tapo smart plug adapter plugin for WebThings Gateway",
+  "gateway_specific_settings": {
+    "webthings": {
+      "exec": "python3 {path}/main.py",
+      "primary_type": "adapter",
+      "strict_max_version": "*",
+      "strict_min_version": "0.10.0"
+    }
+  },
+  "homepage_url": "https://github.com/WebThingsIO/tapo-adapter",
+  "id": "tapo-adapter",
+  "license": "MPL-2.0",
+  "manifest_version": 1,
+  "name": "TP-Link Tapo",
+  "options": {
+    "default": {
+      "addresses": []
+    },
+    "schema": {
+      "type": "object",
+      "required": [
+        "username",
+        "password",
+        "addresses"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "Tapo app username"
+        },
+        "password": {
+          "type": "string",
+          "description": "Tapo app password"
+        },
+        "addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "short_name": "TP-Link Tapo",
+  "version": "0.0.1"
+}

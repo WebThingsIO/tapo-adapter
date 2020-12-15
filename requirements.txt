@@ -1,0 +1,1 @@
+git+https://github.com/fishbigger/TapoP100#egg=PyP100
