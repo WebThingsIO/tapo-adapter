@@ -33,7 +33,7 @@ class TapoProperty(Property):
             else:
                 return
         except Exception as e:
-            print('Failed to set property:', e)
+            print('Failed to set property: {}'.format(e))
             return
 
         self.set_cached_value(value)

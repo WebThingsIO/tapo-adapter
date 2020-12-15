@@ -15,18 +15,20 @@ _POLL_INTERVAL = 5
 class TapoDevice(Device):
     """TP-Link Tapo device type."""
 
-    def __init__(self, adapter, _id, p100, info):
+    def __init__(self, adapter, _id, address, p100, info):
         """
         Initialize the object.
 
         adapter -- the Adapter managing this device
         _id -- ID of this device
+        address -- IP address
         p100 -- the P100 object to initialize from
         info -- the device info object
         """
         Device.__init__(self, adapter, _id)
         self._type = ['OnOffSwitch', 'SmartPlug']
 
+        self.address = address
         self.p100 = p100
         self.description = info['model']
 
@@ -50,6 +52,11 @@ class TapoDevice(Device):
         t.daemon = True
         t.start()
 
+    def reconnect(self):
+        """Reconnect the P100 object."""
+        self.p100.handshake()
+        self.p100.login()
+
     def poll(self):
         """Poll the device for changes."""
         while True:
@@ -58,22 +65,33 @@ class TapoDevice(Device):
             try:
                 info = self.p100.getDeviceInfo()
                 if not info:
-                    self.connected_notify(False)
-                    continue
+                    raise Exception('Failed to retrieve device info')
 
                 info = json.loads(info)
-                if 'error_code' not in info or info['error_code'] != 0 or \
-                        'result' not in info:
-                    self.connected_notify(False)
-                    continue
+
+                if 'error_code' not in info or info['error_code'] != 0:
+                    raise Exception(
+                        'Received error code: {}'.format(info['error_code'])
+                    )
+
+                if 'result' not in info:
+                    raise Exception('Invalid device info: {}'.format(info))
 
                 self.connected_notify(True)
                 info = info['result']
 
                 for prop in self.properties.values():
                     prop.update(info)
-            except Exception:
+            except Exception as e:
+                print('Failed to poll device: {}'.format(e))
                 self.connected_notify(False)
+
+                # Try to reconnect
+                try:
+                    self.reconnect()
+                except Exception:
+                    pass
+
                 continue
 
     def is_on(self, info):

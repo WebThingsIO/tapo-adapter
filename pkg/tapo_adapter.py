@@ -58,7 +58,7 @@ class TapoAdapter(Adapter):
                 print('Failed to connect to {}: {}'.format(address, e))
                 continue
 
-            self._add_device(p100)
+            self._add_device(address, p100)
 
     def start_pairing(self, timeout):
         """
@@ -77,30 +77,37 @@ class TapoAdapter(Adapter):
 
         self.pairing = False
 
-    def _add_device(self, p100):
+    def _add_device(self, address, p100):
         """
         Add the given device, if necessary.
 
+        address -- IP address of the device
         p100 -- the P100 object
         """
         info = p100.getDeviceInfo()
         if not info:
+            print('Failed to retrieve device info')
             return
 
         try:
             info = json.loads(info)
         except ValueError:
+            print('Failed to decode device info: {}'.format(info))
             return
 
-        if 'error_code' not in info or info['error_code'] != 0 or \
-                'result' not in info:
+        if 'error_code' not in info or info['error_code'] != 0:
+            print('Received error code: {}'.format(info['error_code']))
+            return
+
+        if 'result' not in info:
+            print('Invalid device info: {}'.format(info))
             return
 
         info = info['result']
 
         _id = 'tapo-' + info['device_id']
         if _id not in self.devices:
-            device = TapoDevice(self, _id, p100, info)
+            device = TapoDevice(self, _id, address, p100, info)
             self.handle_device_added(device)
 
     def cancel_pairing(self):
