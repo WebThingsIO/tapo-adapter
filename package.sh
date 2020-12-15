@@ -1,6 +1,16 @@
 #!/bin/bash -e
 
+# Setup environment for building inside Dockerized toolchain
+[ $(id -u) = 0 ] && umask 0
+
 version=$(grep '"version"' manifest.json | cut -d: -f2 | cut -d\" -f2)
+
+if [ -z "${ADDON_ARCH}" ]; then
+  TARFILE_SUFFIX=
+else
+  PYTHON_VERSION="$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d. -f 1-2)"
+  TARFILE_SUFFIX="-${ADDON_ARCH}-v${PYTHON_VERSION}"
+fi
 
 # Clean up from previous releases
 rm -rf *.tgz package SHA256SUMS lib
@@ -22,7 +32,7 @@ find . -type f \! -name SHA256SUMS -exec shasum --algorithm 256 {} \; >> SHA256S
 cd -
 
 # Make the tarball
-TARFILE="tapo-adapter-${version}.tgz"
+TARFILE="tapo-adapter-${version}${TARFILE_SUFFIX}.tgz"
 tar czf ${TARFILE} package
 
 shasum --algorithm 256 ${TARFILE} > ${TARFILE}.sha256sum
